@@ -1,0 +1,121 @@
+scrape_timestamp,checkin_date,checkout_date,room_category,rooms_available,availability_source,min_price_inr,status,error_detail,is_capped
+2026-11-01T16:31:04.032359+05:30,2026-11-02,2026-11-03,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-02,2026-11-03,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-02,2026-11-03,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-02,2026-11-03,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-03,2026-11-04,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-03,2026-11-04,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-03,2026-11-04,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-03,2026-11-04,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-04,2026-11-05,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-04,2026-11-05,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-04,2026-11-05,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-04,2026-11-05,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-05,2026-11-06,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-05,2026-11-06,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-05,2026-11-06,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-05,2026-11-06,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-06,2026-11-07,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-06,2026-11-07,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-06,2026-11-07,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-06,2026-11-07,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-07,2026-11-08,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-07,2026-11-08,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-07,2026-11-08,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-07,2026-11-08,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-08,2026-11-09,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-08,2026-11-09,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-08,2026-11-09,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-08,2026-11-09,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-09,2026-11-10,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-09,2026-11-10,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-09,2026-11-10,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-09,2026-11-10,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-10,2026-11-11,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-10,2026-11-11,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-10,2026-11-11,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-10,2026-11-11,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-11,2026-11-12,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-11,2026-11-12,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-11,2026-11-12,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-11,2026-11-12,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-12,2026-11-13,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-12,2026-11-13,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-12,2026-11-13,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-12,2026-11-13,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-13,2026-11-14,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-13,2026-11-14,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-13,2026-11-14,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-13,2026-11-14,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-14,2026-11-15,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-14,2026-11-15,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-14,2026-11-15,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-14,2026-11-15,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-15,2026-11-16,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-15,2026-11-16,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-15,2026-11-16,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-15,2026-11-16,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-16,2026-11-17,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-16,2026-11-17,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-16,2026-11-17,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-16,2026-11-17,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-17,2026-11-18,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-17,2026-11-18,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-17,2026-11-18,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-17,2026-11-18,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-18,2026-11-19,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-18,2026-11-19,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-18,2026-11-19,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-18,2026-11-19,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-19,2026-11-20,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-19,2026-11-20,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-19,2026-11-20,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-19,2026-11-20,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-20,2026-11-21,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-20,2026-11-21,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-20,2026-11-21,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-20,2026-11-21,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-21,2026-11-22,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-21,2026-11-22,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-21,2026-11-22,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-21,2026-11-22,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-22,2026-11-23,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-22,2026-11-23,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-22,2026-11-23,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-22,2026-11-23,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-23,2026-11-24,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-23,2026-11-24,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-23,2026-11-24,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-23,2026-11-24,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-24,2026-11-25,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-24,2026-11-25,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-24,2026-11-25,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-24,2026-11-25,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-25,2026-11-26,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-25,2026-11-26,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-25,2026-11-26,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-25,2026-11-26,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-26,2026-11-27,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-26,2026-11-27,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-26,2026-11-27,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-26,2026-11-27,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-27,2026-11-28,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-27,2026-11-28,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-27,2026-11-28,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-27,2026-11-28,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-28,2026-11-29,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-28,2026-11-29,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-28,2026-11-29,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-28,2026-11-29,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-29,2026-11-30,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-29,2026-11-30,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-29,2026-11-30,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-29,2026-11-30,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-30,2026-12-01,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-30,2026-12-01,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-30,2026-12-01,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-11-30,2026-12-01,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-12-01,2026-12-02,Standard Double Room,2,room_selector,1040,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-12-01,2026-12-02,Deluxe Double Room,7,room_selector,1144,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-12-01,2026-12-02,Deluxe Quadruple Room,2,room_selector,2080,ok,,true
+2026-11-01T16:31:04.032359+05:30,2026-12-01,2026-12-02,6-Bed Mixed Dormitory Room,3,room_selector,2184,ok,,true

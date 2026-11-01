@@ -1,0 +1,3 @@
+2026-10-31 22:24:08,077 INFO     hotel_scraper: Run started | config=config/config.yaml | property_id=heaven_and_harmony_tapovan (Around Stays-Heaven And Harmony, Tapovan, Rishikesh, India)
+2026-10-31 22:24:08,077 INFO     hotel_scraper: Verifying public listing: https://www.booking.com/hotel/in/heaven-and-harmony-tapovan.en-gb.html
+2026-10-31 22:24:10,107 ERROR    hotel_scraper: Listing verification failed: Listing verification FAILED for 'heaven_and_harmony_tapovan': configured name 'Around Stays-Heaven And Harmony' does not appear in the page title or visible text (title was: ''). The URL likely points to a different or changed listing. Do NOT scrape an unverified listing — re-run manual M0 verification and update the config.
