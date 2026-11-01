@@ -1,0 +1,28 @@
+# Virtual environments
+.venv/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Browser automation artifacts
+playwright-report/
+test-results/
+
+# Generated outputs and logs (spec §12 — deliverable samples are
+# curated separately at milestone M8)
+output/*.csv
+logs/*.log
+!output/.gitkeep
+!logs/.gitkeep
+
+# Secrets / local env (never commit credentials, spec §4)
+.env
+.env.*
+
+# OS noise
+.DS_Store

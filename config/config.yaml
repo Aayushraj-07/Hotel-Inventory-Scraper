@@ -1,0 +1,47 @@
+# Hotel Inventory Scraper — Phase 1 configuration (spec.md §5)
+# No secrets, no personal data in this file.
+#
+# ── PROPERTY IDENTITY (M0, 2026-10-31 — see docs/m0_findings.md) ─────────────
+# The assignment target "Hotel Shiv Vilas" was NOT found on Booking.com
+# during manual M0 verification. With explicit developer approval, Phase 1
+# runs against the verified Tapovan listing found instead. The shiv_vilas
+# record is kept below (disabled) for a later re-check. This is a recorded
+# deviation from spec §3.1 / §5.2 / §17.3 — not a silent change.
+
+settings:
+  adults: 2                   # assignment rule: 2 adults
+  rooms: 1                    # assignment rule: 1 room
+  stay_nights: 1              # assignment rule: one-night stay
+  currency: INR               # assignment rule: INR (confirm ₹ visible on live page — still unverified)
+  days_to_scrape: 30          # documented assumption: tomorrow .. tomorrow+29 (spec §5.4)
+  page_load_delay_seconds: 3  # assignment minimum: >= 3 seconds between page loads
+  max_attempts_per_date: 3    # documented interpretation: 3 total attempts per date
+  timezone: Asia/Kolkata
+
+properties:
+  # Enabled Phase 1 property — verified manually in M0 (source: real listing URL).
+  # booking_url intentionally omits query parameters; the scraper adds
+  # per-date search parameters (checkin/checkout/occupancy) at run time.
+  - property_id: heaven_and_harmony_tapovan
+    property_name: Around Stays-Heaven And Harmony
+    location: Tapovan, Rishikesh, India
+    booking_url: https://www.booking.com/hotel/in/heaven-and-harmony-tapovan.en-gb.html
+    booking_property_id: "17328907"   # dest_id observed in the listing URL with dest_type=hotel
+    enabled: true
+
+  # Deferred assignment target (spec §3.1): no Booking.com listing found
+  # during M0. Kept disabled; revisit later.
+  - property_id: shiv_vilas
+    property_name: Hotel Shiv Vilas
+    location: Tapovan, Rishikesh, India
+    booking_url: null
+    booking_property_id: null
+    enabled: false
+
+  # Future example only; not part of Phase 1 execution (spec §5.1).
+  - property_id: example_hotel_jaipur
+    property_name: Example Hotel Jaipur
+    location: Jaipur, India
+    booking_url: null
+    booking_property_id: null
+    enabled: false
