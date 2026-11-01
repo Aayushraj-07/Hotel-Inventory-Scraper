@@ -198,6 +198,16 @@ Only), then sanitized: all `<script>` blocks removed, session ids
 address) and placeholder emails redacted. Post-sanitization sensitive
 scan: **empty**; scripts: **0**.
 
+> **Correction (2026-11-01, pre-public-push scan):** the original scan
+> pattern (`sid=`) missed **URL-encoded** occurrences (`sid%3D…` inside
+> ad-network redirect URLs, e.g. Kayak). A follow-up scan for the raw
+> redacted session-id values themselves found 6 residues (2 raw + 4
+> URL-encoded) of two session ids across the two fixtures. All were
+> redacted to `[REDACTED_SESSION_ID]`; re-scan for the raw values, the
+> client IP and JWT prefixes is **empty**; all 171 tests still pass.
+> Sanitization lesson recorded: scan for the sensitive **values**, not
+> for a URL-pattern form of them.
+
 | Fixture | Size | Content |
 |---------|------|---------|
 | `tests/fixtures/live_2026-11-01_roomtable.html` | 492 KB | property page — `hprt-*` rooms table, search 2026-11-01 → 2026-11-02, 2 adults, 1 room, INR |
