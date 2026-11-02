@@ -222,6 +222,22 @@ scan: **empty**; scripts: **0**.
 > client IP and JWT prefixes is **empty**; all 171 tests still pass.
 > Sanitization lesson recorded: scan for the sensitive **values**, not
 > for a URL-pattern form of them.
+>
+> **Correction 2 (2026-11-02, GitHub secret-scanning alert):** GitHub
+> flagged a **Google API key** (`AIza…`, 39 chars) embedded in
+> Booking.com's own page HTML — their public, referrer-restricted web
+> key that loads Maps/analytics for every visitor. It rode inside both
+> fixtures in **plain HTML**, not a `<script>` block, so the original
+> sanitization (which stripped scripts, session ids, JWTs and emails)
+> never touched it. It is not this project's credential and not a
+> confidential secret, but it was redacted to
+> `[REDACTED_GOOGLE_API_KEY]` and **all of git history was rewritten**
+> (`git filter-branch`) so no commit contains it; that same rewrite also
+> purged the residual session ids from the two earliest commits. Re-scan
+> across every commit: clean; 171 tests still pass. Lesson recorded:
+> third-party pages embed **their own** credentials — scan fixtures for
+> provider-key patterns (`AIza…`, `AKIA…`, `sk-…`, `ghp_…`), not just
+> session/JWT material.
 
 | Fixture | Size | Content |
 |---------|------|---------|
