@@ -140,6 +140,21 @@ report (M8).
 - Open question for the assignment owner: how to proceed when WAF
   challenges block automated access (see README at M8).
 
+**Recurrences (2026-11-01, 2026-11-02 — block confirmed persistent):**
+
+| # | Run (IST) | Log | Signature | Outcome |
+|---|-----------|-----|-----------|---------|
+| 1 | 2026-10-31 22:24 | `logs/run_20261031_2224.log` (curated in repo) | HTTP 202, empty title, `awsWafCookieDomainList` | stopped, exit 3 |
+| 2 | 2026-11-01 22:31 | `logs/run_20261101_2231.log` | identical (HTTP 202, `awsWafCookieDomainList`) | stopped in 1.2 s, exit 3 |
+| 3 | 2026-11-02 05:52 | `logs/run_20261102_0552.log` | identical | stopped in 1.3 s, exit 3 |
+
+Three independent human-initiated runs across three days, same
+challenge page each time → the block is **persistent for this
+environment**, not a transient blip. No bypass or evasion was
+attempted in any of them; per decision D8 no further automated
+attempts are planned until conditions change (development continues
+offline; manual human browser access still works for spot checks).
+
 ## 8. Manual inspection results (2026-11-01, developer's own browser)
 
 Human access works (no challenge encountered). Recorded from the

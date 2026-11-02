@@ -258,15 +258,18 @@ deliberately does **not** implement multi-property execution (spec §3.2).
 
 ## 8. Limitations (current state)
 
-- **Automated live access is blocked.** On 2026-10-31 Booking.com
-  served an AWS WAF bot-protection challenge (HTTP 202, empty title)
-  to the headless browser. Per the rules the run **stopped** (exit 3),
-  nothing was bypassed, and no automated retry-against-the-block has
-  been attempted since. Evidence: `docs/m0_findings.md` §7,
-  `logs/run_20261031_2224.log`. Human browser access works normally.
-  Live mode is code-complete and offline-tested, but **not** verified
-  against the live site since the block — this README will not claim
-  otherwise.
+- **Automated live access is blocked (persistent).** Booking.com's AWS
+  WAF serves a bot-protection challenge (HTTP 202,
+  `awsWafCookieDomainList`) to the headless browser. Three runs —
+  2026-10-31, 2026-11-01 and 2026-11-02 — each **stopped at listing
+  verification within ~1.3 s** (exit 3). No bypass or evasion was
+  attempted in any of them, and no further attempts are planned until
+  conditions change (decision D8, `docs/decisions.md`). Evidence:
+  `docs/m0_findings.md` §7 (recurrence table) and the run logs
+  (`logs/run_20261031_2224.log` curated; later ones local). Human
+  browser access works normally. Live mode is code-complete and
+  offline-tested, but **not** verified against the live site since the
+  block — this README will not claim otherwise.
 - `sold_out` rows cannot be produced until real not-bookable markup is
   observed (honesty rule).
 - Counts are capped selector maxima, not physical inventory (Q1/Q2).
