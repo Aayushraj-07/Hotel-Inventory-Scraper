@@ -28,5 +28,10 @@ logs/*.log
 .env
 .env.*
 
+# Assignment specification — kept LOCAL only, never published.
+# (Removed from GitHub history on 2026-11-02; the public repo must not
+# contain the assignment brief. This file stays on disk for reference.)
+spec.md
+
 # OS noise
 .DS_Store
