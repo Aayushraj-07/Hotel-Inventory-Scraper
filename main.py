@@ -196,7 +196,7 @@ def main(argv: list[str] | None = None) -> int:
                 fetch_html=lambda _url: fixture_html,
                 now=observation_now,
             )
-            csv_path = sample_output_path(run_time)
+            csv_path = sample_output_path(run_time, property_record.property_id)
         else:
             # Live mode: verify the listing first, then collect (spec §13).
             log.info("Verifying public listing: %s", property_record.booking_url)
@@ -218,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
                     fetch_html=lambda url: fetch_property_html(session, url),
                     now=observation_now,
                 )
-            csv_path = output_path(run_time)
+            csv_path = output_path(run_time, property_record.property_id)
 
         # --- Validation + CSV (spec §8, §13 steps 7-9) --------------------
         validate_rows(result.rows, checkin_dates, settings.stay_nights)

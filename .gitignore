@@ -17,10 +17,12 @@ test-results/
 # curated separately at milestone M8)
 output/*.csv
 logs/*.log
-# Curated deliverables (spec §16): labelled sample CSV + representative logs
+# Curated deliverables (spec §16): labelled sample CSV + evidence logs
 !output/*_SAMPLE.csv
 !logs/run_20261031_2224.log
-!logs/run_20261101_1631.log
+!logs/run_20261101_2231.log
+!logs/run_20261102_0552.log
+!logs/run_20261102_0644.log
 !output/.gitkeep
 !logs/.gitkeep
 

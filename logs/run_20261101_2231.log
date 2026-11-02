@@ -1,0 +1,7 @@
+2026-11-01 22:31:40,173 INFO     hotel_scraper: Run started | config=config/config.yaml | property_id=heaven_and_harmony_tapovan (Around Stays-Heaven And Harmony, Tapovan, Rishikesh, India)
+2026-11-01 22:31:40,174 INFO     hotel_scraper: Search parameters: adults=2 rooms=1 stay_nights=1 currency=INR
+2026-11-01 22:31:40,174 INFO     hotel_scraper: Planned check-in dates: 30 (2026-11-02 .. 2026-12-01); last checkout: 2026-12-02
+2026-11-01 22:31:40,174 INFO     hotel_scraper: CSV contract: 8 required columns + bonus columns ['error_detail', 'is_capped']
+2026-11-01 22:31:40,174 INFO     hotel_scraper: Verifying public listing: https://www.booking.com/hotel/in/heaven-and-harmony-tapovan.en-gb.html
+2026-11-01 22:31:41,332 ERROR    hotel_scraper: BLOCKED during listing verification (spec §4): Bot-protection challenge page from https://www.booking.com/hotel/in/heaven-and-harmony-tapovan.en-gb.html (HTTP 202, HTML matched 'awsWafCookieDomainList') — stopping per assignment rules (no bypass attempts).
+2026-11-01 22:31:41,332 ERROR    hotel_scraper: Stopped without any bypass attempt. This event must be explained in the README/run report.

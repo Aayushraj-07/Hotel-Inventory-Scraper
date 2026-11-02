@@ -8,7 +8,7 @@ complete on assertion alone.
 **Verification commands:**
 
 ``` bash
-.venv/bin/python -m pytest -q                       # 171 passed
+.venv/bin/python -m pytest -q                       # 172 passed
 .venv/bin/python main.py --config config/config.yaml --sample-from-fixture
                                                      # EXIT=0, 120 rows
 ```
@@ -24,9 +24,9 @@ complete on assertion alone.
 | 3 | `requirements.txt` | ✅ | bounded: pyyaml, playwright, beautifulsoup4 (+ pytest) |
 | 4 | `README.md` | ⏳ **M8** | pending |
 | 5 | `spec.md` | ✅ | present |
-| 6 | Unit tests + sanitized fixtures | ✅ | 171 tests (§3 below); `tests/fixtures/*.html` sanitized — sensitive scan empty (m0_findings §8.5) |
-| 7 | Sample CSV (real run or labelled saved-evidence sample) | ✅ | `output/shivvilas_inventory_20261101_1631_SAMPLE.csv` — 120 rows, `_SAMPLE` label per §16 vs §8.1 resolution (csv_service docstring) |
-| 8 | Run log | ✅ | `logs/run_20261101_1631.log` (full evidence trail); block-event logs `run_20261031_*.log` |
+| 6 | Unit tests + sanitized fixtures | ✅ | 172 tests (§3 below); `tests/fixtures/*.html` sanitized — sensitive scan empty (m0_findings §8.5) |
+| 7 | Sample CSV (real run or labelled saved-evidence sample) | ✅ | `output/heaven_and_harmony_tapovan_inventory_20261102_0644_SAMPLE.csv` — 120 rows, `_SAMPLE` label per §16. Filename now per-property (D14, recorded deviation from spec §8.1's `shivvilas_*` stem) |
+| 8 | Run log | ✅ | `logs/run_20261102_0644.log` (sample-run evidence trail); block-event logs `run_20261031_2224.log` / `run_20261101_2231.log` / `run_20261102_0552.log` |
 
 ## 2. Acceptance criteria (spec §17)
 
@@ -44,7 +44,7 @@ complete on assertion alone.
 | 10 | No date failure crashes the run | ✅ | `test_inventory.py::test_exhausted_retries_write_error_row_and_next_date_still_runs` |
 | 11 | Retries + page-load delays comply | ✅ | ≤3 attempts enforced in config validation; shared RateLimiter gate-before/mark-after (`test_browser.py`, 26 tests); retries flow through the same limiter |
 | 12 | CSV columns and order exact | ✅ | spec §8.2 order hardcoded in a test; header equality asserted (`test_csv.py`) |
-| 13 | Validation and tests pass | ✅ | **171 passed** |
+| 13 | Validation and tests pass | ✅ | **172 passed** |
 | 14 | README answers all six questions | ⏳ | **M8** |
 | 15 | No login / personal data / protection bypass | ✅ | sanitized fixtures (scan empty, scripts stripped, sid/JWT/IP redacted); WAF block detected → stopped → documented (m0_findings §7); no bypass attempted |
 | 16 | Config-driven property; no hardcoded extraction | ✅ | parser/scraper contain zero hotel-specific logic; property comes from config (`Property` record) |

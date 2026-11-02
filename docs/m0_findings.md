@@ -99,9 +99,12 @@ offered** for the searched dates.
 
 ## 6. Open questions / flags
 
-1. **CSV filename** stays `shivvilas_inventory_<timestamp>.csv` per
-   spec §8.1, even though the scraped property is different. Keep as-is
-   (spec-fixed) or clarify with the assignment owner? **Kept as-is for now.**
+1. **CSV filename** — was `shivvilas_inventory_<timestamp>.csv` per
+   spec §8.1 despite a different scraped property. **Resolved
+   2026-11-02 (decision D14):** the filename now derives from the
+   scraped property id (`<property_id>_inventory_<timestamp>.csv`, e.g.
+   `heaven_and_harmony_tapovan_inventory_….csv`) — a recorded deviation
+   from spec §8.1, so the file names the hotel actually scraped.
 2. **Hotel Shiv Vilas re-check:** repeat Step 1 of M0 later (direct
    Booking.com search, "also known as" section, Google Maps address
    cross-check). If found, swap the enabled record — no code changes.

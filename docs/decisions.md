@@ -28,7 +28,7 @@ assistant chat). Detailed evidence lives in `docs/m0_findings.md` and
 | D3 | **Bonus columns = `error_detail` + `is_capped` only** | 2026-10-31 | other spec §9 bonuses deferred |
 | D4 | **YAML** configuration | 2026-10-31 | `config/config.yaml`, no secrets |
 | D5 | **Automated startup listing verification** | 2026-10-31 | hard gate before any scraping (exit 3) |
-| D6 | **Property substitution**: `heaven_and_harmony_tapovan` enabled, `shiv_vilas` kept disabled | 2026-10-31 | Hotel Shiv Vilas not found on Booking.com; approved deviation (m0_findings §1). CSV filename stays spec-fixed `shivvilas_inventory_*` |
+| D6 | **Property substitution**: `heaven_and_harmony_tapovan` enabled, `shiv_vilas` kept disabled | 2026-10-31 | Hotel Shiv Vilas not found on Booking.com; approved deviation (m0_findings §1). CSV filename now follows the property id (see D14) |
 | D7 | **Manual inspection by the developer** in their own browser | 2026-11-01 | human access ≠ bypass; fixtures saved + sanitized by hand |
 | D8 | **No re-runs against Booking.com after the AWS WAF block** | 2026-10-31 | retrying-to-bypass would violate spec §4; fixtures drive development |
 | D9 | **Rate-limiter semantics: gate-before + mark-after** | 2026-10-31 | strictest reading of "≥3 s between page loads" after a live test exposed a gap |
@@ -36,6 +36,7 @@ assistant chat). Detailed evidence lives in `docs/m0_findings.md` and
 | D11 | **Parser anchors from the saved fixture (`hprt-*` rooms table)** | 2026-11-01 | an earlier live view showed `rp-*` testids — a different render state; recorded, not used (m0_findings §8 row 8) |
 | D12 | **`_SAMPLE` filename suffix** for saved-evidence runs | 2026-11-01 | resolves the tension between spec §8.1 (fixed pattern) and §16 (clearly label samples) |
 | D13 | **`sold_out` emission disabled until real markup is observed** | 2026-11-01 | AI-generated wording was discarded; honesty rule (m0_findings §8.2) |
+| D14 | **CSV filename derived from the scraped property id**, not the spec's fixed `shivvilas_*` stem: `<property_id>_inventory_<ts>.csv` → `heaven_and_harmony_tapovan_inventory_<ts>.csv` | 2026-11-02 | developer-directed; **recorded deviation from spec §8.1** (which fixed `shivvilas_inventory_*`). Config-driven (multi-property-ready, spec §8.5), avoids hardcoding the substitute hotel's name. Old `shivvilas_*` artifacts cleaned from `output/` + `logs/` |
 
 ## Observed facts the implementation depends on
 

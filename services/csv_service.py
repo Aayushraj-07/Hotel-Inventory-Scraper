@@ -3,8 +3,11 @@
     * §8.2 — exactly eight required columns in exactly this order.
     * §9   — optional bonus columns; Phase 1 decision: error_detail and
               is_capped only, appended *after* the required columns.
-    * §8.1 — one file per run: shivvilas_inventory_<YYYYMMDD_HHMM>.csv,
-              timestamped in the configured India time zone.
+    * one file per run, named after the property actually scraped:
+      <property_id>_inventory_<YYYYMMDD_HHMM>.csv, timestamped in the
+      configured India time zone. (Recorded deviation from spec §8.1's
+      fixed ``shivvilas_inventory_*`` stem — see output_filename and
+      docs/decisions.md D14.)
 
 Flow: collect rows -> validation_service.validate_rows(...) ->
 write_csv(...). The writer never validates row *content* (that is the
@@ -39,11 +42,20 @@ BONUS_COLUMNS = [
 # Final on-disk column order: required columns first, then bonus columns.
 OUTPUT_COLUMNS = REQUIRED_COLUMNS + BONUS_COLUMNS
 
-FILENAME_PREFIX = "shivvilas_inventory"
+def output_filename(run_time: datetime, property_id: str) -> str:
+    """Build the per-run CSV filename for one property.
 
+    Pattern: ``{property_id}_inventory_<YYYYMMDD_HHMM>.csv`` — derived
+    from the **config-driven** property id so each property gets its own
+    file (spec §8.5 strategy 1; multi-property-ready, no hardcoded hotel
+    name in the writer).
 
-def output_filename(run_time: datetime) -> str:
-    """Build the per-run CSV filename (spec §8.1).
+    Recorded deviation from spec §8.1 (developer-directed, 2026-11-02):
+    the spec fixed the stem as ``shivvilas_inventory_*`` after the
+    assignment's named hotel ("Hotel Shiv Vilas") was found not to exist
+    on Booking.com and Phase 1 ran against the verified substitute. The
+    developer chose to name output files after the property actually
+    scraped instead of the spec's placeholder. See docs/decisions.md D14.
 
     ``run_time`` must be timezone-aware so the timestamp reflects the
     configured time zone rather than the machine's local zone.
@@ -52,27 +64,33 @@ def output_filename(run_time: datetime) -> str:
         raise ValueError(
             "run_time must be timezone-aware (configured India time zone, spec §8.1)."
         )
-    return f"{FILENAME_PREFIX}_{run_time.strftime('%Y%m%d_%H%M')}.csv"
+    if not property_id or not str(property_id).strip():
+        raise ValueError("property_id is required to build the output filename.")
+    return f"{str(property_id).strip()}_inventory_{run_time.strftime('%Y%m%d_%H%M')}.csv"
 
 
-def output_path(run_time: datetime, output_dir: str | Path = "output") -> Path:
+def output_path(
+    run_time: datetime, property_id: str, output_dir: str | Path = "output"
+) -> Path:
     """Full output path for a run, creating the directory if needed."""
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
-    return directory / output_filename(run_time)
+    return directory / output_filename(run_time, property_id)
 
 
-def sample_output_path(run_time: datetime, output_dir: str | Path = "output") -> Path:
+def sample_output_path(
+    run_time: datetime, property_id: str, output_dir: str | Path = "output"
+) -> Path:
     """Path for a SAMPLE CSV built from saved page evidence (spec §16).
 
     Spec §16 permits "a clearly labelled sample based on saved page
-    evidence if live access is blocked" while §8.1 fixes the run-filename
-    pattern. Resolution (documented decision, not silent): keep the §8.1
-    stem and append ``_SAMPLE`` so the file identifies itself as
-    evidence-based sample data rather than live observations (§16:
-    "do not present fabricated data as live observations").
+    evidence if live access is blocked". Resolution (documented decision,
+    not silent): keep the per-run stem and append ``_SAMPLE`` so the file
+    identifies itself as evidence-based sample data rather than live
+    observations (§16: "do not present fabricated data as live
+    observations").
     """
-    path = output_path(run_time, output_dir)
+    path = output_path(run_time, property_id, output_dir)
     return path.with_name(f"{path.stem}_SAMPLE{path.suffix}")
 
 

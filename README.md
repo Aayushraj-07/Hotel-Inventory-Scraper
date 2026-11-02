@@ -91,8 +91,12 @@ python main.py --config config/config.yaml --sample-from-fixture
 
 One CSV per run in `output/`:
 
-- live runs: `shivvilas_inventory_<YYYYMMDD_HHMM>.csv` (spec §8.1)
-- sample runs: `shivvilas_inventory_<YYYYMMDD_HHMM>_SAMPLE.csv` —
+- live runs: `<property_id>_inventory_<YYYYMMDD_HHMM>.csv` — e.g.
+  `heaven_and_harmony_tapovan_inventory_<ts>.csv`. The name is derived
+  from the config-driven property id (multi-property-ready, spec §8.5).
+  *Recorded deviation from spec §8.1*, which fixed the stem as
+  `shivvilas_inventory_*` — see `docs/decisions.md` D14.
+- sample runs: `<property_id>_inventory_<YYYYMMDD_HHMM>_SAMPLE.csv` —
   the `_SAMPLE` suffix is a deliberate, documented label (spec §16:
   saved-evidence samples must not read as live observations; D12)
 

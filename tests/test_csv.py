@@ -36,6 +36,7 @@ SPEC_REQUIRED_COLUMNS = [
 ]
 
 RUN_TIME = datetime(2026, 10, 31, 17, 15, tzinfo=ZoneInfo("Asia/Kolkata"))
+PROPERTY_ID = "heaven_and_harmony_tapovan"
 
 
 def read_rows(path: Path) -> list[list[str]]:
@@ -43,30 +44,38 @@ def read_rows(path: Path) -> list[list[str]]:
         return list(csv.reader(handle))
 
 
-# --- Filename (spec §8.1) -------------------------------------------------------
+# --- Filename (per-property; recorded deviation from spec §8.1) -----------------
 
 
-def test_output_filename_pattern() -> None:
-    assert output_filename(RUN_TIME) == "shivvilas_inventory_20261031_1715.csv"
+def test_output_filename_uses_property_id() -> None:
+    assert (
+        output_filename(RUN_TIME, PROPERTY_ID)
+        == "heaven_and_harmony_tapovan_inventory_20261031_1715.csv"
+    )
 
 
 def test_output_filename_rejects_naive_datetime() -> None:
     with pytest.raises(ValueError, match="timezone-aware"):
-        output_filename(datetime(2026, 10, 31, 17, 15))
+        output_filename(datetime(2026, 10, 31, 17, 15), PROPERTY_ID)
+
+
+def test_output_filename_requires_property_id() -> None:
+    with pytest.raises(ValueError, match="property_id"):
+        output_filename(RUN_TIME, "")
 
 
 def test_output_path_creates_directory_and_uses_pattern(tmp_path: Path) -> None:
     target_dir = tmp_path / "new_output"
-    path = output_path(RUN_TIME, target_dir)
+    path = output_path(RUN_TIME, PROPERTY_ID, target_dir)
     assert path.parent.is_dir()
-    assert path.name == "shivvilas_inventory_20261031_1715.csv"
+    assert path.name == "heaven_and_harmony_tapovan_inventory_20261031_1715.csv"
 
 
 def test_sample_output_path_is_clearly_labelled(tmp_path: Path) -> None:
     """spec §16: a sample from saved evidence must label itself as such."""
-    path = sample_output_path(RUN_TIME, tmp_path)
-    assert path.name == "shivvilas_inventory_20261031_1715_SAMPLE.csv"
-    assert path.name.startswith("shivvilas_inventory_")  # §8.1 stem kept
+    path = sample_output_path(RUN_TIME, PROPERTY_ID, tmp_path)
+    assert path.name == "heaven_and_harmony_tapovan_inventory_20261031_1715_SAMPLE.csv"
+    assert path.name.startswith(f"{PROPERTY_ID}_inventory_")
 
 
 # --- Header and column order (spec §8.2) ----------------------------------------
