@@ -3,17 +3,29 @@
 ``services/inventory_service.py`` (milestone M6) uses these types to apply
 the retry policy:
 
-    * transient categories (navigation, timeout, structure, missing data)
-      -> retry up to the configured attempt limit (3 total per date)
+    * transient categories (navigation, timeout, missing data) -> retry up to
+      the configured attempt limit (3 total per date)
+    * ``StructureError`` / extraction failures -> no retry (assignment §4)
     * ``BlockedError`` (CAPTCHA / bot protection / access block)
       -> STOP the affected activity immediately; never retry in a way that
          attempts to bypass the protection (spec §4, §10)
 
 Each class exposes ``category`` for structured logging (spec §10: "log the
 date, attempt number, failure category and concise error details").
+
+Failures may additionally carry ``access_state`` — the precise state from
+:mod:`scraper.access_state` (assignment §4), set by whoever observed it
+(e.g. ``BlockedError(access_state=AccessState.CAPTCHA_PRESENT)``). When it
+is None, ``scraper.access_state.state_for_exception`` falls back to
+class-based mapping.
 """
 
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - typing only, avoids import cycle
+    from scraper.access_state import AccessState
 
 
 class ScraperError(Exception):
@@ -22,9 +34,16 @@ class ScraperError(Exception):
     category = "unknown"
     retryable = True
 
-    def __init__(self, message: str, *, url: str | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        url: str | None = None,
+        access_state: "AccessState | None" = None,
+    ) -> None:
         super().__init__(message)
         self.url = url
+        self.access_state = access_state
 
 
 class NavigationError(ScraperError):

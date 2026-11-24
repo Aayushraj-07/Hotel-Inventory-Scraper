@@ -1,8 +1,9 @@
 """CSV output contract and serialization (spec §8, §9).
 
     * §8.2 — exactly eight required columns in exactly this order.
-    * §9   — optional bonus columns; Phase 1 decision: error_detail and
-              is_capped only, appended *after* the required columns.
+    * §9   — optional bonus columns; this phase: error_detail, is_capped
+              and data_source (live|fixture|snapshot), appended *after*
+              the required columns.
     * one file per run, named after the property actually scraped:
       <property_id>_inventory_<YYYYMMDD_HHMM>.csv, timestamped in the
       configured India time zone. (Recorded deviation from spec §8.1's
@@ -33,10 +34,13 @@ REQUIRED_COLUMNS = [
     "status",
 ]
 
-# Spec §9 + approved decision 4: only these two bonus columns in Phase 1.
+# Spec §9 + approved decisions: three bonus columns in this phase.
+# data_source (assignment §8/§9) records HOW each row was acquired —
+# live | fixture | snapshot — so no offline run can pass as live data.
 BONUS_COLUMNS = [
     "error_detail",
     "is_capped",
+    "data_source",
 ]
 
 # Final on-disk column order: required columns first, then bonus columns.
@@ -92,6 +96,34 @@ def sample_output_path(
     """
     path = output_path(run_time, property_id, output_dir)
     return path.with_name(f"{path.stem}_SAMPLE{path.suffix}")
+
+
+def fixture_output_path(
+    run_time: datetime, property_id: str, output_dir: str | Path = "output"
+) -> Path:
+    """Path for a CSV produced by ``--mode fixture`` (assignment §3.B).
+
+    The ``_FIXTURE`` suffix marks the file as deterministic test-scenario
+    output — never live Booking.com inventory. The legacy
+    ``--sample-from-fixture`` flag keeps ``_SAMPLE`` (spec §16 wording);
+    both labels are reinforced by the ``data_source`` column once that
+    stage lands.
+    """
+    path = output_path(run_time, property_id, output_dir)
+    return path.with_name(f"{path.stem}_FIXTURE{path.suffix}")
+
+
+def snapshot_output_path(
+    run_time: datetime, property_id: str, output_dir: str | Path = "output"
+) -> Path:
+    """Path for a CSV produced by ``--mode snapshot`` (assignment §3.C).
+
+    The ``_SNAPSHOT`` suffix marks output derived from a locally saved
+    HTML file — a real page the user supplied, but not a live request
+    made by this run.
+    """
+    path = output_path(run_time, property_id, output_dir)
+    return path.with_name(f"{path.stem}_SNAPSHOT{path.suffix}")
 
 
 def _cell(value: object) -> str:

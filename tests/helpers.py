@@ -21,6 +21,7 @@ def make_row(**overrides) -> dict:
         "status": "ok",
         "error_detail": None,
         "is_capped": None,
+        "data_source": "live",
     }
     row.update(overrides)
     return row

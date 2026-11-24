@@ -37,6 +37,9 @@ assistant chat). Detailed evidence lives in `docs/m0_findings.md` and
 | D12 | **`_SAMPLE` filename suffix** for saved-evidence runs | 2026-11-01 | resolves the tension between spec §8.1 (fixed pattern) and §16 (clearly label samples) |
 | D13 | **`sold_out` emission disabled until real markup is observed** | 2026-11-01 | AI-generated wording was discarded; honesty rule (m0_findings §8.2) |
 | D14 | **CSV filename derived from the scraped property id**, not the spec's fixed `shivvilas_*` stem: `<property_id>_inventory_<ts>.csv` → `heaven_and_harmony_tapovan_inventory_<ts>.csv` | 2026-11-02 | developer-directed; **recorded deviation from spec §8.1** (which fixed `shivvilas_inventory_*`). Config-driven (multi-property-ready, spec §8.5), avoids hardcoding the substitute hotel's name. Old `shivvilas_*` artifacts cleaned from `output/` + `logs/` |
+| D15 | **`sold_out` emitted when a room row's quantity selector maximum is 0** | 2026-11-23 | synthetic-validated with a dedicated fixture (selector offers only `0`); an observed zero, not invented wording. **Supersedes D13** (which disabled sold_out until real markup was seen). Rows with no numeric signal remain `ok` with unknown availability. |
+| D16 | **Third bonus column `data_source`** (`live|fixture|snapshot`) appended after `error_detail`, `is_capped` | 2026-11-23 | hiring-team update: every CSV row must honestly identify its acquisition mode. **Supersedes D3** (two bonus columns). Required 8 columns unchanged. |
+| D17 | **Snapshot mode accepts a directory: one saved file per check-in date, merged into one CSV** | 2026-11-24 | real per-date data without any scraper-side network access or bypass: a human saves each date's page, code detects/rejects bad dates and serves each file only to its own date's rows. Duplicate or undetectable dates fail fast (exit 2) rather than guessing. |
 
 ## Observed facts the implementation depends on
 

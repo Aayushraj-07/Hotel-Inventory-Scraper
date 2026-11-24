@@ -27,6 +27,11 @@ from typing import TYPE_CHECKING
 
 from playwright.sync_api import Error as PlaywrightError
 
+from scraper.access_state import (
+    ACCESS_DENIED_STATUSES,
+    NOT_FOUND_STATUSES,
+    AccessState,
+)
 from scraper.browser import BrowserSession
 from scraper.exceptions import VerificationError
 
@@ -103,9 +108,18 @@ def verify_listing(
     response = session.goto(url, wait_until="load", timeout_ms=timeout_ms)
 
     if response is not None and response.status >= 400:
+        status = response.status
+        if status in NOT_FOUND_STATUSES:
+            state = AccessState.PROPERTY_NOT_FOUND
+        elif status in ACCESS_DENIED_STATUSES:
+            state = AccessState.HTTP_ACCESS_DENIED
+        else:
+            state = AccessState.UNKNOWN_ERROR
         raise VerificationError(
             f"Listing for '{record.property_id}' at {url} returned "
-            f"HTTP {response.status} — cannot verify identity."
+            f"HTTP {status} — cannot verify identity.",
+            url=url,
+            access_state=state,
         )
 
     title = session.page.title() or ""
@@ -121,7 +135,9 @@ def verify_listing(
             f"name {record.property_name!r} does not appear in the page title or "
             f"visible text (title was: {title.strip()!r}). The URL likely points "
             "to a different or changed listing. Do NOT scrape an unverified "
-            "listing — re-run manual M0 verification and update the config."
+            "listing — re-run manual M0 verification and update the config.",
+            url=url,
+            access_state=AccessState.PROPERTY_MISMATCH,
         )
 
     verification = ListingVerification(

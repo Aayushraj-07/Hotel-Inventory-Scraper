@@ -23,6 +23,7 @@ logs/*.log
 !logs/run_20261101_2231.log
 !logs/run_20261102_0552.log
 !logs/run_20261102_0644.log
+!logs/run_20261123_1402.log
 !output/.gitkeep
 !logs/.gitkeep
 

@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from scraper.access_state import AccessState
 from scraper.exceptions import BlockedError, PageTimeoutError, VerificationError
 from scraper.hotel_finder import ListingVerification, names_match, verify_listing
 from services.property_service import Property
@@ -163,12 +164,22 @@ def test_verification_fails_when_name_absent_everywhere() -> None:
     assert "heaven_and_harmony_tapovan" in message
     assert "Around Stays-Heaven And Harmony" in message
     assert "Do NOT scrape" in message
+    assert excinfo.value.access_state is AccessState.PROPERTY_MISMATCH
 
 
 def test_verification_fails_on_http_error_status() -> None:
     session = FakeSession(title="Around Stays-Heaven And Harmony", status=404)
-    with pytest.raises(VerificationError, match="HTTP 404"):
+    with pytest.raises(VerificationError, match="HTTP 404") as excinfo:
         verify_listing(make_property(), session)
+    assert excinfo.value.access_state is AccessState.PROPERTY_NOT_FOUND
+
+
+def test_verification_http_500_maps_to_unknown_error_state() -> None:
+    """Not every HTTP error is 'not found' — the state stays honest."""
+    session = FakeSession(title="x", status=500)
+    with pytest.raises(VerificationError) as excinfo:
+        verify_listing(make_property(), session)
+    assert excinfo.value.access_state is AccessState.UNKNOWN_ERROR
 
 
 def test_verification_fails_without_booking_url() -> None:

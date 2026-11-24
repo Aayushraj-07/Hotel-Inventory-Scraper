@@ -29,42 +29,21 @@ from playwright.sync_api import Response
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
-from scraper.exceptions import (
-    BlockedError,
-    NavigationError,
-    PageTimeoutError,
-    ScraperError,
+from scraper.access_state import (
+    AccessClassification,
+    AccessState,
+    classify_access_state,
+    raise_for_blocking_state,
 )
+from scraper.exceptions import NavigationError, PageTimeoutError, ScraperError
 
 log = logging.getLogger("hotel_scraper.browser")
 
 DEFAULT_NAVIGATION_TIMEOUT_MS = 30_000
 
-# HTTP statuses treated as an access block (spec §10 "access blocks").
-BLOCK_STATUS_CODES = frozenset({403, 429, 503})
-
-# Heuristic VISIBLE-TEXT markers for CAPTCHA / bot protection. These only
-# trigger *stopping* — they are never used for extraction, so no site
-# selectors are assumed here. Refine against real observed pages in M5;
-# false positives fail safe (the run stops and reports, per spec §10).
-BLOCK_TEXT_MARKERS = (
-    "confirm you are human",
-    "verify you are human",
-    "are you a robot",
-    "unusual traffic",
-    "captcha challenge",
-)
-
-# Challenge-page markers OBSERVED in the live block event of 2026-10-31:
-# Booking.com served an AWS WAF interstitial (HTTP 202) with an empty
-# <title> and no body text. Evidence taken from that real response — not
-# invented (spec: never invent signals). Detected via page HTML because
-# the challenge renders no visible text at all.
-BLOCK_HTML_MARKERS = (
-    "awsWafCookieDomainList",
-    "/__challenge_",
-    "reportChallengeError",
-)
+# Block/challenge detection inputs (statuses, observed WAF markers, CAPTCHA
+# text/markup markers) now live in scraper/access_state.py — the single
+# source of truth for access-state classification (assignment §4).
 
 
 class RateLimiter:
@@ -258,10 +237,16 @@ class BrowserSession:
             response = page.goto(url, timeout=timeout, wait_until=wait_until)
         except PlaywrightTimeoutError as exc:
             raise PageTimeoutError(
-                f"Navigation timed out after {timeout}ms: {url}", url=url
+                f"Navigation timed out after {timeout}ms: {url}",
+                url=url,
+                access_state=AccessState.NAVIGATION_TIMEOUT,
             ) from exc
         except PlaywrightError as exc:
-            raise NavigationError(f"Navigation failed: {url} ({exc})", url=url) from exc
+            raise NavigationError(
+                f"Navigation failed: {url} ({exc})",
+                url=url,
+                access_state=AccessState.NETWORK_ERROR,
+            ) from exc
         finally:
             # Success OR failure: the load attempt happened, so restart the
             # spacing clock — retries must respect the interval too (spec §4).
@@ -270,35 +255,54 @@ class BrowserSession:
         self._raise_if_blocked(response, url)
         return response
 
-    # --- Block detection ----------------------------------------------------
+    # --- Access-state detection ---------------------------------------------
 
     def _raise_if_blocked(self, response: Response | None, url: str) -> None:
-        if response is not None and response.status in BLOCK_STATUS_CODES:
-            raise BlockedError(
-                f"Access block: HTTP {response.status} from {url} — stopping "
-                "this activity per assignment rules (no bypass attempts).",
-                url=url,
-            )
-        # Challenge pages often render NO visible text (observed 2026-10-31),
-        # so the HTML itself is checked for the observed WAF markers first.
-        html = self._page_html()
-        for marker in BLOCK_HTML_MARKERS:
-            if marker in html:
-                status = response.status if response is not None else "?"
-                raise BlockedError(
-                    f"Bot-protection challenge page from {url} (HTTP {status}, "
-                    f"HTML matched {marker!r}) — stopping per assignment rules "
-                    "(no bypass attempts).",
-                    url=url,
-                )
-        visible = self.visible_text(timeout_ms=2_000).lower()
-        for marker in BLOCK_TEXT_MARKERS:
-            if marker in visible:
-                raise BlockedError(
-                    f"Possible CAPTCHA/bot protection on {url} (page text "
-                    f"matched {marker!r}) — stopping per assignment rules.",
-                    url=url,
-                )
+        """Classify the response centrally; raise on blocking states (§4).
+
+        The multi-indicator rules (authoritative statuses; WAF markers
+        observed 2026-10-31; two-source minimum for content heuristics)
+        live in :mod:`scraper.access_state` — this method only gathers the
+        four inputs (status, title, HTML, visible text) and enforces
+        ``BLOCKING_STATES``. A state that is not blocking (e.g. PROPERTY_
+        NOT_FOUND) is left to the caller/verification layer.
+        """
+        status = response.status if response is not None else None
+
+        # Fast path: authoritative statuses (denied / not found) classify
+        # without touching the DOM — same instant fail as before, now with a
+        # precise state attached.
+        if status is not None:
+            classification = classify_access_state(http_status=status)
+            if classification.state is not None:
+                self._enforce_classification(classification, url, status)
+                return
+
+        classification = classify_access_state(
+            http_status=status,
+            title=self._page_title(),
+            html=self._page_html(),
+            visible_text=self.visible_text(timeout_ms=2_000),
+        )
+        self._enforce_classification(classification, url, status)
+
+    def _enforce_classification(
+        self, classification: AccessClassification, url: str, status: int | None
+    ) -> None:
+        """Raise :class:`BlockedError` when the state requires stopping (§4).
+
+        Enforcement lives in :func:`scraper.access_state.raise_for_blocking_state`
+        so the live browser and the offline fetch paths cannot diverge.
+        Non-blocking states stay with the caller/verification layer.
+        """
+        raise_for_blocking_state(classification, url=url, http_status=status)
+
+    def _page_title(self) -> str:
+        """Page <title>; '' when the DOM cannot be read."""
+        try:
+            return self.page.title()
+        except PlaywrightError:
+            return ""
 
     def _page_html(self) -> str:
         """Full page HTML; '' when the DOM cannot be read."""

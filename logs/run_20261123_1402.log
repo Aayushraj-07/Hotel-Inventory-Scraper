@@ -1,0 +1,8 @@
+2026-11-23 14:02:53,853 INFO     hotel_scraper: Run started | config=config/config.yaml | property_id=heaven_and_harmony_tapovan (Around Stays-Heaven And Harmony, Tapovan, Rishikesh, India)
+2026-11-23 14:02:53,853 INFO     hotel_scraper: Search parameters: adults=2 rooms=1 stay_nights=1 currency=INR
+2026-11-23 14:02:53,853 INFO     hotel_scraper: Planned check-in dates: 30 (2026-11-24 .. 2026-12-23); last checkout: 2026-12-24
+2026-11-23 14:02:53,853 INFO     hotel_scraper: CSV contract: 8 required columns + bonus columns ['error_detail', 'is_capped', 'data_source']
+2026-11-23 14:02:53,853 INFO     hotel_scraper: Verifying public listing: https://www.booking.com/hotel/in/heaven-and-harmony-tapovan.en-gb.html
+2026-11-23 14:02:55,033 WARNING  hotel_scraper.access_state: Access state AWS_WAF_CHALLENGE | url=https://www.booking.com/hotel/in/heaven-and-harmony-tapovan.en-gb.html | indicators=[HTTP 202, awsWafCookieDomainList, /__challenge_, reportChallengeError]
+2026-11-23 14:02:55,051 ERROR    hotel_scraper: BLOCKED during listing verification (spec §4) [AWS_WAF_CHALLENGE]: AWS WAF challenge page from https://www.booking.com/hotel/in/heaven-and-harmony-tapovan.en-gb.html (HTTP 202, indicators: HTTP 202, awsWafCookieDomainList, /__challenge_, reportChallengeError) — stopping per assignment rules (no bypass attempts).
+2026-11-23 14:02:55,051 ERROR    hotel_scraper: Stopped without any bypass attempt. This event must be explained in the README/run report.

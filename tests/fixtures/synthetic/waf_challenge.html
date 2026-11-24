@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<!-- SYNTHETIC TEST FIXTURE — scenario: waf_challenge. NOT live Booking.com data.
+     Reproduces the SHAPE and observed markers of the 2026-10-31 AWS WAF
+     interstitial (HTTP 202, empty title, no visible body text). No challenge
+     is solved and no bypass is attempted: detection means STOP.
+-->
+<html lang="en"><head><title></title></head><body>
+<script>
+  var awsWafCookieDomainList = ["booking.com"];
+  var challengePath = "/__challenge_/waf";
+  function reportChallengeError(e) { return e; }
+</script>
+</body></html>

@@ -39,6 +39,10 @@ AVAILABILITY_SOURCES = frozenset(
     }
 )
 
+# Bonus column data_source (assignment §8): how the row was acquired.
+# A fixture/snapshot row must never claim to be live, and vice versa.
+DATA_SOURCES = frozenset({"live", "fixture", "snapshot"})
+
 # Statuses that use a date-level record with an empty room_category.
 DATE_LEVEL_STATUSES = frozenset({"no_rooms_listed", "error"})
 
@@ -229,6 +233,14 @@ def validate_rows(
         if capped is not None and not isinstance(capped, bool):
             raise ValidationError(
                 f"{label}.is_capped must be a boolean or empty, got {capped!r}."
+            )
+
+        # --- data_source (bonus column — honest provenance) ---------------
+        source_mode = row.get("data_source")
+        if not isinstance(source_mode, str) or source_mode not in DATA_SOURCES:
+            raise ValidationError(
+                f"{label}.data_source {source_mode!r} is invalid; expected one of "
+                f"{sorted(DATA_SOURCES)} (acquisition mode that produced the row)."
             )
 
         # --- Duplicates (spec §8.7) --------------------------------------

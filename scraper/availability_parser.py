@@ -25,10 +25,10 @@ Honesty rules encoded here (spec §7.1–§7.5, §8.4; m0_findings §8.2)
     * A quantity-selector maximum is recorded as
       ``availability_source="room_selector"`` with ``is_capped=True``:
       the selector maximum may hide larger real inventory (spec §7.2).
-    * ``sold_out`` is NEVER emitted by this parser. No "not bookable"
-      row markup has ever been observed for this property, so there is
-      no evidence to justify it. When real evidence is observed, add a
-      documented branch — do not guess markup.
+    * ``sold_out`` is emitted ONLY for an observed numeric signal: a room
+      row whose quantity selector offers a maximum of 0 (synthetic-validated,
+      decision D15 which supersedes D13). No invented "not bookable" wording
+      or site-specific markup is ever used.
     * Scarcity text is matched only with the exact wording observed on
       Booking.com ("We have N left at this price" — observed on
       search-result cards 2026-11-01), and only when it appears *inside
@@ -167,7 +167,7 @@ def parse_rooms(html: str) -> list[dict]:
 
         {
           "room_category":       exact displayed name (spec §7.5),
-          "status":              "ok" for listed rows (see sold-out note),
+          "status":              ok | sold_out (selector maximum == 0 only),
           "rooms_available":     int | None — observed numeric signal only,
           "availability_source": room_selector | scarcity_message
                                  | no_numeric_signal (spec §7.3),
@@ -217,12 +217,19 @@ def parse_rooms(html: str) -> list[dict]:
 
         # --- Evidence-based classification (spec §7.2) -------------------
         # Precedence: explicit scarcity number > selector maximum > none.
-        # "sold_out" is intentionally absent — never observed (§8.2).
+        # A selector maximum of 0 is an OBSERVED zero, so the row is
+        # genuinely sold out (D15) — not a guess about hidden inventory.
         error_detail = None
+        status = "ok"
         if scarcity_count is not None:
             rooms_available: int | None = scarcity_count
             source = "scarcity_message"
             is_capped: bool | None = None
+        elif qty_max == 0:
+            status = "sold_out"
+            rooms_available = 0
+            source = "room_selector"
+            is_capped = False  # zero is definitive; no cap to disclose
         elif qty_max is not None and qty_max >= 1:
             rooms_available = qty_max
             source = "room_selector"
@@ -244,7 +251,7 @@ def parse_rooms(html: str) -> list[dict]:
         observations.append(
             {
                 "room_category": category,
-                "status": "ok",
+                "status": status,
                 "rooms_available": rooms_available,
                 "availability_source": source,
                 "min_price_inr": price,

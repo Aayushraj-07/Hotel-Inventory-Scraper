@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!-- SYNTHETIC TEST FIXTURE — scenario: sold_out. NOT live Booking.com data.
+     Row 1: quantity selector offers only 0 -> observed sold_out (D15).
+     Row 2: selector maximum 2 -> normal capped availability.
+-->
+<html lang="en">
+<head><title>Around Stays-Heaven And Harmony, Tapovan, Rishikesh</title></head>
+<body>
+<div data-testid="searchbox-dates-container"></div>
+<div data-testid="breadcrumb-item">Around Stays-Heaven And Harmony</div>
+<table class="e2e-hprt-table">
+  <tr class="e2e-hprt-table-row" data-block-id="SYN-S1">
+    <td>
+      <a class="hprt-roomtype-link" data-room-id="SYN-2001"><span class="hprt-roomtype-icon-link">Synthetic Sold-Out Room</span></a>
+      <div class="bui-price-display__value">₹ 1,200</div>
+      <select class="hprt-nos-select"><option value="0" selected>0</option></select>
+    </td>
+  </tr>
+  <tr class="e2e-hprt-table-row" data-block-id="SYN-S2">
+    <td>
+      <a class="hprt-roomtype-link" data-room-id="SYN-2002"><span class="hprt-roomtype-icon-link">Synthetic Available Room</span></a>
+      <div class="bui-price-display__value">₹ 1,500</div>
+      <div data-excl-charges-raw="75">+₹&nbsp;75 taxes and charges</div>
+      <select class="hprt-nos-select"><option value="0">0</option><option value="1">1</option><option value="2" selected>2</option></select>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

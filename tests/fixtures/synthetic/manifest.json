@@ -1,0 +1,66 @@
+{
+  "_comment": "Synthetic test scenarios only — NOT live Booking.com observations. http_status is replayed by the offline fetch path so HTTP-authoritative states can be exercised without a network request.",
+  "available": {
+    "file": "available.html",
+    "http_status": 200,
+    "expected_property_name": "Around Stays-Heaven And Harmony",
+    "expected_state": null,
+    "description": "Two ordinary room rows with observed selector maxima (2 and 3)."
+  },
+  "sold_out": {
+    "file": "sold_out.html",
+    "http_status": 200,
+    "expected_property_name": "Around Stays-Heaven And Harmony",
+    "expected_state": null,
+    "description": "One row whose selector offers only 0 (sold_out) plus one ordinary row."
+  },
+  "no_rooms": {
+    "file": "no_rooms.html",
+    "http_status": 200,
+    "expected_property_name": "Around Stays-Heaven And Harmony",
+    "expected_state": null,
+    "description": "Property page chrome with zero room rows -> no_rooms_listed."
+  },
+  "waf_challenge": {
+    "file": "waf_challenge.html",
+    "http_status": 202,
+    "expected_property_name": null,
+    "expected_state": "AWS_WAF_CHALLENGE",
+    "description": "Observed WAF markers, empty title, HTTP 202 -> stop, never bypass."
+  },
+  "captcha": {
+    "file": "captcha.html",
+    "http_status": 200,
+    "expected_property_name": null,
+    "expected_state": "CAPTCHA_PRESENT",
+    "description": "Visible text + widget markup + challenge title -> stop."
+  },
+  "bot_protection": {
+    "file": "bot_protection.html",
+    "http_status": 200,
+    "expected_property_name": null,
+    "expected_state": "BOT_PROTECTION",
+    "description": "Bot-filtering wording + interstitial shape -> stop."
+  },
+  "http_denied": {
+    "file": "http_denied.html",
+    "http_status": 403,
+    "expected_property_name": null,
+    "expected_state": "HTTP_ACCESS_DENIED",
+    "description": "HTTP 403 is authoritative on its own -> stop, no retries."
+  },
+  "property_mismatch": {
+    "file": "property_mismatch.html",
+    "http_status": 200,
+    "expected_property_name": "Totally Different Hotel",
+    "expected_state": "PROPERTY_MISMATCH",
+    "description": "Clean room table for a different property -> identity check refuses to scrape."
+  },
+  "structure_changed": {
+    "file": "structure_changed.html",
+    "http_status": 200,
+    "expected_property_name": "Around Stays-Heaven And Harmony",
+    "expected_state": "PAGE_STRUCTURE_CHANGED",
+    "description": "Room row with no readable name -> error row, no retry."
+  }
+}

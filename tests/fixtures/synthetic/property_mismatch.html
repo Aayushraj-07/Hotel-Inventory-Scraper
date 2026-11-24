@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!-- SYNTHETIC TEST FIXTURE — scenario: property_mismatch. NOT live Booking.com data.
+     A plausible room table for a DIFFERENT property: startup identity checks
+     must refuse to scrape it (exit 3), even though the HTML parses cleanly.
+-->
+<html lang="en">
+<head><title>Totally Different Hotel, Somewhere Else</title></head>
+<body>
+<div data-testid="searchbox-dates-container"></div>
+<div data-testid="breadcrumb-item">Totally Different Hotel</div>
+<table class="e2e-hprt-table">
+  <tr class="e2e-hprt-table-row" data-block-id="SYN-M1">
+    <td>
+      <a class="hprt-roomtype-link" data-room-id="SYN-8001"><span class="hprt-roomtype-icon-link">Wrong Property Room</span></a>
+      <div class="bui-price-display__value">₹ 9,999</div>
+      <select class="hprt-nos-select"><option value="0">0</option><option value="1" selected>1</option></select>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

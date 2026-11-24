@@ -254,3 +254,37 @@ def test_room_row_without_a_name_raises_structure_error() -> None:
 
 def test_page_without_room_rows_returns_empty_list() -> None:
     assert parse_rooms("<html><body><p>nothing here</p></body></html>") == []
+
+
+# --- Synthetic sold_out signal (decision D15, supersedes D13) ---------------
+
+
+SYNTHETIC_SOLD_OUT_HTML = (FIXTURES / "synthetic" / "sold_out.html").read_text(
+    encoding="utf-8"
+)
+
+
+def test_selector_zero_is_reported_as_sold_out() -> None:
+    """A selector offering only 0 is an observed zero, not an invention."""
+    sold_out = parse_rooms(SYNTHETIC_SOLD_OUT_HTML)[0]
+
+    assert sold_out["room_category"] == "Synthetic Sold-Out Room"
+    assert sold_out["status"] == "sold_out"
+    assert sold_out["rooms_available"] == 0
+    assert sold_out["availability_source"] == "room_selector"
+    assert sold_out["qty_selectable_max"] == 0
+    assert sold_out["is_capped"] is False  # zero is definitive, not a cap
+    assert sold_out["error_detail"] is None
+
+
+def test_mixed_page_keeps_available_row_as_ok() -> None:
+    rows = parse_rooms(SYNTHETIC_SOLD_OUT_HTML)
+    assert [row["status"] for row in rows] == ["sold_out", "ok"]
+    assert [row["rooms_available"] for row in rows] == [0, 2]
+    assert rows[1]["is_capped"] is True
+
+
+def test_real_fixture_has_no_zero_selector_so_no_sold_out() -> None:
+    """D15 changes the rule, not the evidence: the real page still has no 0."""
+    assert all(row["qty_selectable_max"] > 0 for row in parse_rooms(ROOMTABLE_HTML))
+    assert all(row["status"] == "ok" for row in parse_rooms(ROOMTABLE_HTML))

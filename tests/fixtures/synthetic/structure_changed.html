@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!-- SYNTHETIC TEST FIXTURE — scenario: structure_changed. NOT live Booking.com data.
+     A room row exists but the name link is empty: the parser must refuse to
+     silently drop a displayed category (PAGE_STRUCTURE_CHANGED, no retry).
+-->
+<html lang="en">
+<head><title>Around Stays-Heaven And Harmony, Tapovan, Rishikesh</title></head>
+<body>
+<div data-testid="searchbox-dates-container"></div>
+<div data-testid="breadcrumb-item">Around Stays-Heaven And Harmony</div>
+<table class="e2e-hprt-table">
+  <tr class="e2e-hprt-table-row" data-block-id="SYN-X1">
+    <td>
+      <a class="hprt-roomtype-link" data-room-id="SYN-9001"></a>
+      <div class="bui-price-display__value">₹ 1,300</div>
+      <select class="hprt-nos-select"><option value="0">0</option><option value="1" selected>1</option></select>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

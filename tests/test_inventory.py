@@ -6,6 +6,7 @@ stub; the real fixture supplies the success-path HTML. No Booking.com
 access, no network, no real waiting.
 """
 
+import logging
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -15,7 +16,15 @@ import pytest
 from services.inventory_service import collect_inventory
 from services.property_service import Property, Settings
 from services.validation_service import validate_rows
-from scraper.exceptions import BlockedError, NavigationError, StructureError
+from scraper.access_state import AccessState
+from scraper.exceptions import (
+    BlockedError,
+    NavigationError,
+    PageTimeoutError,
+    ScraperError,
+    StructureError,
+    VerificationError,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 ROOMTABLE_HTML = (FIXTURES / "live_2026-11-01_roomtable.html").read_text(
@@ -97,13 +106,14 @@ class RecordingFetch:
         return action
 
 
-def collect(fetch, *, dates=DATES, settings=None):
+def collect(fetch, *, dates=DATES, settings=None, data_source="live"):
     return collect_inventory(
         property_record=PROPERTY,
         settings=settings or make_settings(),
         checkin_dates=dates,
         fetch_html=fetch,
         now=lambda: FIXED_NOW,
+        data_source=data_source,
     )
 
 
@@ -198,7 +208,8 @@ def test_exhausted_retries_write_error_row_and_next_date_still_runs() -> None:
         assert row["status"] == "error"
         assert row["availability_source"] == "page_error"
         assert row["room_category"] == ""
-        assert "after 2 attempt(s)" in row["error_detail"]
+        assert "retries exhausted (2)" in row["error_detail"]
+        assert "NETWORK_ERROR" in row["error_detail"]
         assert "navigation" in row["error_detail"]
     validate_rows(result.rows, DATES, stay_nights=1)
 
@@ -213,12 +224,15 @@ def test_unrendered_page_is_retried_then_error() -> None:
     assert "missing_data" in result.rows[0]["error_detail"]
 
 
-def test_structure_error_is_retried_then_error() -> None:
+def test_structure_error_is_not_retried() -> None:
+    """PAGE_STRUCTURE_CHANGED is non-retryable (per-state policy, §4)."""
     fetch = RecordingFetch([NAMELESS_ROW_HTML] * 3)
     result = collect(fetch, dates=[date(2026, 11, 2)])
 
-    assert len(fetch.calls) == 3
+    assert len(fetch.calls) == 1  # no retry for a structural change
     assert result.rows[0]["status"] == "error"
+    assert "PAGE_STRUCTURE_CHANGED" in result.rows[0]["error_detail"]
+    assert "no retry" in result.rows[0]["error_detail"]
     assert "unexpected_structure" in result.rows[0]["error_detail"]
 
 
@@ -268,3 +282,125 @@ def test_collect_rejects_naive_timestamps() -> None:
             fetch_html=RecordingFetch([ROOMTABLE_HTML]),
             now=lambda: datetime(2026, 11, 1, 12, 0),  # no tzinfo
         )
+
+
+# --- data_source provenance (assignment §8) ---------------------------------
+
+
+def test_rows_are_labelled_live_by_default() -> None:
+    result = collect(RecordingFetch([ROOMTABLE_HTML] * len(DATES)))
+    assert {row["data_source"] for row in result.rows} == {"live"}
+    validate_rows(result.rows, DATES, stay_nights=1)
+
+
+@pytest.mark.parametrize("source", ["fixture", "snapshot"])
+def test_data_source_is_threaded_into_every_row_shape(source: str) -> None:
+    """Every status path must carry the same honest provenance label."""
+    day = [DATES[0]]
+
+    ok = collect(RecordingFetch([ROOMTABLE_HTML]), dates=day, data_source=source)
+    assert {row["data_source"] for row in ok.rows} == {source}
+    validate_rows(ok.rows, day, stay_nights=1)
+
+    no_rooms = collect(
+        RecordingFetch([PROPERTY_PAGE_NO_ROOMS_HTML]), dates=day, data_source=source
+    )
+    assert {row["data_source"] for row in no_rooms.rows} == {source}
+    validate_rows(no_rooms.rows, day, stay_nights=1)
+
+    errors = collect(
+        RecordingFetch([StructureError("broken")]), dates=day, data_source=source
+    )
+    assert {row["data_source"] for row in errors.rows} == {source}
+    validate_rows(errors.rows, day, stay_nights=1)
+
+    blocked = collect(RecordingFetch([BlockedError("block")]), dates=DATES, data_source=source)
+    assert {row["data_source"] for row in blocked.rows} == {source}
+    validate_rows(blocked.rows, DATES, stay_nights=1)
+
+
+def test_invalid_data_source_is_rejected_before_any_fetch() -> None:
+    fetch = RecordingFetch([])
+    with pytest.raises(ValueError, match="data_source"):
+        collect(fetch, data_source="untagged")
+    assert fetch.calls == []  # guard runs before any page load
+
+
+# --- Per-state retry table (assignment §4) ----------------------------------
+
+
+def test_timeout_is_retried_then_succeeds() -> None:
+    fetch = RecordingFetch(
+        [PageTimeoutError("slow"), PageTimeoutError("slow"), ROOMTABLE_HTML]
+    )
+    result = collect(fetch, dates=[DATES[0]])
+
+    assert len(fetch.calls) == 3
+    assert result.dates_ok == 1
+
+
+def test_unknown_scraper_error_is_retried() -> None:
+    fetch = RecordingFetch([VerificationError("odd"), ROOMTABLE_HTML])
+    result = collect(fetch, dates=[DATES[0]])
+
+    assert len(fetch.calls) == 2
+    assert result.dates_ok == 1
+
+
+def test_extraction_error_is_not_retried() -> None:
+    fetch = RecordingFetch([ValueError("bad parse"), ROOMTABLE_HTML])
+    result = collect(fetch, dates=[DATES[0]])
+
+    assert len(fetch.calls) == 1
+    assert result.dates_failed == 1
+    assert "EXTRACTION_ERROR" in result.rows[0]["error_detail"]
+    assert "no retry" in result.rows[0]["error_detail"]
+
+
+def test_carried_state_overrides_exception_class() -> None:
+    """The state decides the policy — not the exception class."""
+    retryable_structure = StructureError(
+        "transient glitch", access_state=AccessState.ROOM_DATA_NOT_LOADED
+    )
+    fetch = RecordingFetch([retryable_structure, ROOMTABLE_HTML])
+    result = collect(fetch, dates=[DATES[0]])
+
+    assert len(fetch.calls) == 2  # ROOM_DATA_NOT_LOADED is retryable
+    assert result.dates_ok == 1
+
+
+def test_blocking_state_on_plain_scraper_error_still_stops_the_run() -> None:
+    """A protection signal is never retried, even without a BlockedError."""
+    fetch = RecordingFetch(
+        [ScraperError("denied", access_state=AccessState.HTTP_ACCESS_DENIED)]
+    )
+    result = collect(fetch, dates=DATES)
+
+    assert len(fetch.calls) == 1
+    assert result.blocked is True
+    assert all(row["status"] == "error" for row in result.rows)
+    validate_rows(result.rows, DATES, stay_nights=1)
+
+
+# --- Per-attempt diagnostics (assignment §4) ---------------------------------
+
+
+def test_one_diagnostic_per_attempt_with_state_and_redaction(caplog) -> None:
+    caplog.set_level(logging.INFO, logger="hotel_scraper.inventory")
+    fetch = RecordingFetch(
+        [NavigationError("boom token=topsecret123"), ROOMTABLE_HTML]
+    )
+    collect(fetch, dates=[DATES[0]])
+
+    lines = [
+        record.getMessage() for record in caplog.records if "diagnostic" in record.message
+    ]
+    assert len(lines) == 2  # failed attempt + successful attempt
+    text = "\n".join(lines)
+    assert "NETWORK_ERROR" in text
+    assert "'attempt': 1" in text and "'attempt': 2" in text
+    assert "'requested_url'" in text
+    assert "'room_info_present'" in text
+    assert "'extraction_succeeded'" in text
+    assert "topsecret123" not in text  # navigation errors are redacted before logging
+

@@ -87,7 +87,11 @@ def test_required_columns_match_spec_exactly() -> None:
 
 def test_bonus_columns_follow_required_columns() -> None:
     assert OUTPUT_COLUMNS[: len(REQUIRED_COLUMNS)] == REQUIRED_COLUMNS
-    assert OUTPUT_COLUMNS[len(REQUIRED_COLUMNS):] == ["error_detail", "is_capped"]
+    assert OUTPUT_COLUMNS[len(REQUIRED_COLUMNS):] == [
+        "error_detail",
+        "is_capped",
+        "data_source",
+    ]
 
 
 def test_written_header_is_exact(tmp_path: Path) -> None:

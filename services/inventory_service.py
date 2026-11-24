@@ -4,18 +4,23 @@ Orchestrates one property's run over the generated check-in dates:
 
     * one search URL per date (:func:`scraper.booking_scraper.build_property_url`,
       observed query parameters only)
-    * up to ``settings.max_attempts_per_date`` attempts per date for
-      RETRYABLE failures (navigation, timeout, structure, missing data)
-    * ``BlockedError`` (CAPTCHA / bot protection / access block) stops ALL
-      further page loads immediately — never retried, never bypassed
-      (spec §4). The affected date and every remaining date still get an
-      honest ``error`` row so every generated date is covered (spec §8.7);
-      the run is flagged ``blocked`` for the exit code.
+    * a PER-STATE retry table (assignment §4): network/timeout/missing-data/
+      unknown failures get up to ``settings.max_attempts_per_date``
+      attempts; structure/extraction/property failures get NO retry; and
+      blocking states (CAPTCHA / WAF / bot protection / HTTP denial) stop
+      ALL further page loads immediately — never retried, never bypassed.
+      The affected date and every remaining date still get an honest
+      ``error`` row so every generated date is covered (spec §8.7); the run
+      is flagged ``blocked`` for the exit code.
+    * an :class:`~scraper.access_state.AccessDiagnostic` is logged for every
+      attempt (state, attempt number, redacted URL/status/title indicators,
+      room-info presence, extraction success — assignment §4).
     * parser observations are mapped to CSV-row dicts: exactly the eight
-      required columns plus the two approved bonus columns
-      (``error_detail``, ``is_capped`` — spec §8.2/§9). Evidence fields
-      (``room_type_id``, selector maximum, taxes, scarcity wording) are
-      retained in the structured per-category logs (spec §7.2, §8.5).
+      required columns plus the three approved bonus columns
+      (``error_detail``, ``is_capped``, ``data_source`` — spec §8.2/§9).
+      ``data_source`` honestly labels each row as live/fixture/snapshot.
+      Evidence fields (``room_type_id``, selector maximum, taxes, scarcity
+      wording) are retained in the structured per-category logs (§7.2/§8.5).
 
 Status handling (spec §8.4): rows -> ``ok``; loaded property page with
 zero rows -> one date-level ``no_rooms_listed`` record; exhausted
@@ -32,17 +37,63 @@ rate limiter and block detection).
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
 from services.date_service import checkout_for
 from services.property_service import Property, Settings
+from services.validation_service import DATA_SOURCES
+from scraper.access_state import (
+    AccessDiagnostic,
+    AccessState,
+    redact_text,
+    state_for_exception,
+)
 from scraper.availability_parser import looks_like_property_page, parse_rooms
 from scraper.booking_scraper import build_property_url
 from scraper.exceptions import BlockedError, MissingDataError, ScraperError
 
 log = logging.getLogger("hotel_scraper.inventory")
+
+# --- Per-state retry policy (assignment §4/§10) -------------------------------
+#
+# Each failure is mapped to an AccessState (scraper.access_state) and the
+# state — not the exception class — decides what happens next:
+#
+#   RETRYABLE_STATES    -> transient: retry up to max_attempts_per_date
+#   BLOCKING_STATES     -> stop the affected activity immediately, never
+#                          retry around it (arrives as BlockedError)
+#   NO_RETRY_STATES     -> structural/permanent: one attempt, honest error
+#                          row for this date, other dates continue
+#
+# PROPERTY_MISMATCH / PROPERTY_NOT_FOUND normally stop at verification
+# (hotel_finder); here they are a safety net that never burns retries.
+RETRYABLE_STATES = frozenset(
+    {
+        AccessState.NETWORK_ERROR,
+        AccessState.NAVIGATION_TIMEOUT,
+        AccessState.ROOM_DATA_NOT_LOADED,
+        AccessState.UNKNOWN_ERROR,
+    }
+)
+NO_RETRY_STATES = frozenset(
+    {
+        AccessState.PAGE_STRUCTURE_CHANGED,
+        AccessState.EXTRACTION_ERROR,
+        AccessState.PROPERTY_NOT_FOUND,
+        AccessState.PROPERTY_MISMATCH,
+    }
+)
+
+_TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
+
+
+def _title_from_html(html: str) -> str:
+    """Page <title> from fetched HTML (standard element, no site selector)."""
+    match = _TITLE_RE.search(html)
+    return match.group(1).strip() if match else ""
 
 
 @dataclass
@@ -69,8 +120,9 @@ def _observation_row(
     status: str,
     error_detail: str | None,
     is_capped: bool | None,
+    data_source: str,
 ) -> dict:
-    """One CSV-contract row (8 required + 2 bonus columns, spec §8.2/§9)."""
+    """One CSV-contract row (8 required + 3 bonus columns, spec §8.2/§9)."""
     return {
         "scrape_timestamp": timestamp,
         "checkin_date": checkin.isoformat(),
@@ -82,6 +134,7 @@ def _observation_row(
         "status": status,
         "error_detail": error_detail,
         "is_capped": is_capped,
+        "data_source": data_source,
     }
 
 
@@ -91,6 +144,7 @@ def _error_row(
     checkout: date,
     timestamp: str,
     detail: str,
+    data_source: str,
 ) -> dict:
     """Date-level ``error`` record (spec §8.4/§8.6)."""
     return _observation_row(
@@ -104,10 +158,13 @@ def _error_row(
         status="error",
         error_detail=detail,
         is_capped=None,
+        data_source=data_source,
     )
 
 
-def _no_rooms_row(*, checkin: date, checkout: date, timestamp: str) -> dict:
+def _no_rooms_row(
+    *, checkin: date, checkout: date, timestamp: str, data_source: str
+) -> dict:
     """Date-level ``no_rooms_listed`` record (spec §8.4/§8.6)."""
     return _observation_row(
         checkin=checkin,
@@ -120,6 +177,7 @@ def _no_rooms_row(*, checkin: date, checkout: date, timestamp: str) -> dict:
         status="no_rooms_listed",
         error_detail=None,
         is_capped=None,
+        data_source=data_source,
     )
 
 
@@ -131,12 +189,14 @@ def _collect_date(
     checkout: date,
     fetch_html: Callable[[str], str],
     timestamp: str,
+    data_source: str,
 ) -> list[dict]:
-    """Fetch + parse one date, retrying retryable failures (spec §10).
+    """Fetch + parse one date using the per-state retry table (assignment §4).
 
-    Raises:
-        BlockedError: always, immediately — the caller stops the run.
-            Blocks are never retried (spec §4).
+    Every attempt emits one structured :class:`AccessDiagnostic` record to
+    the log. Blocking states always re-raise :class:`BlockedError` so the
+    caller stops the whole run (spec §4); other non-retryable states break
+    immediately with an honest error row (no wasted attempts).
     """
     url = build_property_url(
         property_record.booking_url or "",
@@ -148,19 +208,27 @@ def _collect_date(
     )
     attempts = settings.max_attempts_per_date
     last_detail = "no attempt made"
+    attempts_used = 0
+    stop_reason: str | None = None
 
     for attempt in range(1, attempts + 1):
+        attempts_used = attempt
+        diag = AccessDiagnostic(attempt=attempt, requested_url=url)
         try:
             html = fetch_html(url)
+            diag.page_title = _title_from_html(html)
             observations = parse_rooms(html)
+            diag.extraction_succeeded = True
 
             if observations:
+                diag.room_info_present = True
                 log.info(
-                    "date=%s attempt=%d/%d ok: %d room categories",
+                    "date=%s attempt=%d/%d ok: %d room categories | diagnostic=%s",
                     checkin.isoformat(),
                     attempt,
                     attempts,
                     len(observations),
+                    diag.to_log_dict(),
                 )
                 rows = []
                 for obs in observations:
@@ -192,47 +260,106 @@ def _collect_date(
                             status=obs["status"],
                             error_detail=obs["error_detail"],
                             is_capped=obs["is_capped"],
+                            data_source=data_source,
                         )
                     )
                 return rows
 
-            if looks_like_property_page(html):
+            diag.room_info_present = looks_like_property_page(html)
+            if diag.room_info_present:
                 # Loaded and inspected, but zero categories (spec §8.4).
                 log.info(
-                    "date=%s attempt=%d/%d: property page loaded, no rooms listed",
+                    "date=%s attempt=%d/%d: property page loaded, no rooms listed "
+                    "| diagnostic=%s",
                     checkin.isoformat(),
                     attempt,
                     attempts,
+                    diag.to_log_dict(),
                 )
-                return [_no_rooms_row(checkin=checkin, checkout=checkout, timestamp=timestamp)]
+                return [
+                    _no_rooms_row(
+                        checkin=checkin,
+                        checkout=checkout,
+                        timestamp=timestamp,
+                        data_source=data_source,
+                    )
+                ]
 
             # Neither room rows nor property-page markers: the page never
-            # delivered usable content -> retryable (spec §6, §10).
+            # delivered usable content -> ROOM_DATA_NOT_LOADED (retryable).
             raise MissingDataError(
                 "Page contained neither room rows nor property-page markers; "
                 "room content did not render."
             )
-        except BlockedError:
+        except BlockedError as exc:
             # Stop this date AND the whole run (spec §4). Never retried.
+            diag.access_state = state_for_exception(exc)
+            diag.navigation_error = str(exc)
+            log.error("attempt diagnostic | %s", diag.to_log_dict())
             raise
         except ScraperError as exc:
-            last_detail = f"{exc.category}: {exc}"
+            state = state_for_exception(exc)
+            diag.access_state = state
+            diag.navigation_error = str(exc)
+            message = redact_text(str(exc))
+            last_detail = f"[{state.value}] {exc.category}: {message}"
             log.warning(
-                "date=%s attempt=%d/%d failed [%s]: %s",
+                "date=%s attempt=%d/%d failed [%s/%s]: %s | diagnostic=%s",
                 checkin.isoformat(),
                 attempt,
                 attempts,
+                state.value,
                 exc.category,
-                exc,
+                message,
+                diag.to_log_dict(),
             )
 
-    log.error("date=%s: all %d attempts failed; recording error row", checkin.isoformat(), attempts)
+            if state in NO_RETRY_STATES:
+                stop_reason = f"{state.value} — no retry (per-state policy)"
+                break
+            if state in RETRYABLE_STATES:
+                if attempt < attempts:
+                    continue
+                stop_reason = f"{state.value} — retries exhausted ({attempts})"
+                break
+
+            # Defensive: a blocking state that did not arrive as BlockedError
+            # still stops the run — never a retry around a protection signal.
+            raise BlockedError(message, url=url, access_state=state) from exc
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            # Parsing/extraction bugs are EXTRACTION_ERROR: no retry, honest
+            # error row for this date, other dates continue (assignment §4).
+            state = AccessState.EXTRACTION_ERROR
+            diag.access_state = state
+            message = redact_text(str(exc))
+            diag.navigation_error = message
+            last_detail = f"[{state.value}] parser: {message}"
+            log.warning(
+                "date=%s attempt=%d/%d extraction failed: %s | diagnostic=%s",
+                checkin.isoformat(),
+                attempt,
+                attempts,
+                message,
+                diag.to_log_dict(),
+                exc_info=True,
+            )
+            stop_reason = f"{state.value} — no retry (per-state policy)"
+            break
+
+    detail = f"{stop_reason or 'attempt loop ended'}: {last_detail}"
+    log.error(
+        "date=%s: no usable page after %d attempt(s); recording error row (%s)",
+        checkin.isoformat(),
+        attempts_used,
+        stop_reason,
+    )
     return [
         _error_row(
             checkin=checkin,
             checkout=checkout,
             timestamp=timestamp,
-            detail=f"after {attempts} attempt(s): {last_detail}",
+            detail=detail,
+            data_source=data_source,
         )
     ]
 
@@ -244,6 +371,7 @@ def collect_inventory(
     checkin_dates: list[date],
     fetch_html: Callable[[str], str],
     now: Callable[[], datetime],
+    data_source: str = "live",
 ) -> CollectionResult:
     """Collect observations for every check-in date (spec §6, §10).
 
@@ -254,16 +382,27 @@ def collect_inventory(
         fetch_html: injected browser — ``url -> rendered HTML``.
         now: returns the current timezone-aware observation timestamp
             (injectable for deterministic tests).
+        data_source: provenance of every row — ``live``, ``fixture`` or
+            ``snapshot`` (assignment §8). Default ``live`` keeps the
+            pre-upgrade call contract intact; offline modes pass their own
+            label explicitly so no synthetic row can claim to be live.
 
     Returns:
         :class:`CollectionResult` with CSV-contract rows and counters.
         Rows are NOT yet validated — run
         :func:`services.validation_service.validate_rows` before writing.
     """
-    result = CollectionResult()
-    timestamp = now().isoformat()
-    if now().tzinfo is None:
+    if data_source not in DATA_SOURCES:
+        raise ValueError(
+            f"data_source {data_source!r} is invalid; expected one of "
+            f"{sorted(DATA_SOURCES)}."
+        )
+
+    current = now()
+    if current.tzinfo is None:
         raise ValueError("now() must return a timezone-aware datetime (spec §8.3).")
+    result = CollectionResult()
+    timestamp = current.isoformat()
 
     for checkin in checkin_dates:
         checkout = checkout_for(checkin, settings.stay_nights)
@@ -279,6 +418,7 @@ def collect_inventory(
                     timestamp=timestamp,
                     detail="not attempted: run stopped by access block on an "
                     "earlier date (spec §4 — no bypass attempts)",
+                    data_source=data_source,
                 )
             )
             continue
@@ -291,15 +431,17 @@ def collect_inventory(
                 checkout=checkout,
                 fetch_html=fetch_html,
                 timestamp=timestamp,
+                data_source=data_source,
             )
         except BlockedError as exc:
+            block_detail = redact_text(str(exc))
             result.blocked = True
-            result.blocked_detail = str(exc)
+            result.blocked_detail = block_detail
             log.error(
                 "ACCESS BLOCK on date=%s — stopping all further page loads "
                 "(spec §4, no bypass): %s",
                 checkin.isoformat(),
-                exc,
+                block_detail,
             )
             result.dates_failed += 1
             result.rows.append(
@@ -307,14 +449,16 @@ def collect_inventory(
                     checkin=checkin,
                     checkout=checkout,
                     timestamp=timestamp,
-                    detail=f"access block: {exc}",
+                    detail=f"access block: {block_detail}",
+                    data_source=data_source,
                 )
             )
             continue
 
         result.rows.extend(rows)
         status = rows[0]["status"]
-        if status == "ok":
+        if status in ("ok", "sold_out"):
+            # sold_out is an observed zero, not a failed collection (D15).
             result.dates_ok += 1
         elif status == "no_rooms_listed":
             result.dates_no_rooms += 1

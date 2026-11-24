@@ -9,6 +9,7 @@ verification against a neutral site, not Booking.com).
 
 import pytest
 
+from scraper.access_state import AccessState
 from scraper.browser import BrowserSession, RateLimiter
 from scraper.exceptions import (
     BlockedError,
@@ -239,9 +240,13 @@ class FakeBodyLocator:
 
 
 class FakeDomPage:
-    def __init__(self, html: str = "", body_text: str = "") -> None:
+    def __init__(self, html: str = "", body_text: str = "", title: str = "") -> None:
         self._html = html
         self._body_text = body_text
+        self._title = title
+
+    def title(self) -> str:
+        return self._title
 
     def content(self) -> str:
         return self._html
@@ -255,9 +260,11 @@ class FakeResponse:
         self.status = status
 
 
-def session_with_dom(html: str = "", body_text: str = "") -> BrowserSession:
+def session_with_dom(
+    html: str = "", body_text: str = "", title: str = ""
+) -> BrowserSession:
     session = BrowserSession(3.0)
-    session._page = FakeDomPage(html=html, body_text=body_text)  # noqa: SLF001
+    session._page = FakeDomPage(html=html, body_text=body_text, title=title)  # noqa: SLF001
     return session
 
 
@@ -312,6 +319,9 @@ def test_unreadable_dom_fails_open_to_text_check() -> None:
     session = BrowserSession(3.0)
 
     class ExplodingPage:
+        def title(self) -> str:
+            return ""  # title read succeeds but is empty (diagnostic only)
+
         def content(self):
             from playwright.sync_api import Error as PlaywrightError
             raise PlaywrightError("detached")
@@ -322,3 +332,48 @@ def test_unreadable_dom_fails_open_to_text_check() -> None:
     session._page = ExplodingPage()  # noqa: SLF001
     with pytest.raises(BlockedError, match="human"):
         session._raise_if_blocked(FakeResponse(200), "https://example.com/")
+
+
+# --- Access-state attachment (assignment §4) ----------------------------------
+
+
+def test_blocked_error_carries_access_state() -> None:
+    session = session_with_dom(html="<html><body>denied</body></html>", body_text="denied")
+    with pytest.raises(BlockedError) as excinfo:
+        session._raise_if_blocked(FakeResponse(403), "https://example.com/")
+    assert excinfo.value.access_state is AccessState.HTTP_ACCESS_DENIED
+
+
+def test_waf_blocked_error_carries_waf_state() -> None:
+    session = session_with_dom(html=WAF_CHALLENGE_HTML)
+    with pytest.raises(BlockedError) as excinfo:
+        session._raise_if_blocked(FakeResponse(202), "https://www.booking.com/x")
+    assert excinfo.value.access_state is AccessState.AWS_WAF_CHALLENGE
+    assert "no bypass" in str(excinfo.value)
+
+
+def test_captcha_text_blocked_error_carries_captcha_state() -> None:
+    session = session_with_dom(
+        html="<html><body>confirm you are human</body></html>",
+        body_text="Please confirm you are human to continue",
+    )
+    with pytest.raises(BlockedError) as excinfo:
+        session._raise_if_blocked(FakeResponse(200), "https://example.com/")
+    assert excinfo.value.access_state is AccessState.CAPTCHA_PRESENT
+
+
+def test_single_text_marker_on_long_normal_page_does_not_block() -> None:
+    """Two-source rule at the session level: FAQ-style text never stops a run."""
+    body = "Our help article explains how to confirm you are human when signing in. " * 8
+    session = session_with_dom(
+        html=f"<html><head><title>Help</title></head><body>{body}</body></html>",
+        body_text=body,
+        title="Help",
+    )
+    session._raise_if_blocked(FakeResponse(200), "https://example.com/")  # no raise
+
+
+def test_not_found_status_is_not_a_block() -> None:
+    """404 is a verification-layer state, not a stop-the-activity block."""
+    session = session_with_dom(html="<html><body>not found</body></html>", body_text="not found")
+    session._raise_if_blocked(FakeResponse(404), "https://example.com/")  # no raise
