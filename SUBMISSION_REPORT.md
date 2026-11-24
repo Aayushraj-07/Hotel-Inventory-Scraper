@@ -65,20 +65,19 @@ never presented as live observations.
 
 ### Why no bypass
 
-The WAF challenge is a security control Booking.com deliberately
-deployed, so circumventing it would mean defeating an access control — a
-line this project will not cross in code regardless of who requests it;
-ordinary requests to public pages are where it stops. Practically, a
-bypass would not hold either: AWS WAF's challenge is server-side with
-rotating signatures, so any bypass would be brittle, need constant
-upkeep, and escalate to IP bans — the result would be stale or
-fabricated data, or a broken tool, never reliable inventory. Finally,
-the honest contract is the point of the assignment: blocks are to be
-reported, not evaded, and every row declares its provenance via
-`data_source`. The legitimate routes instead are Booking.com's official
-partner API, an authorized environment (non-headless / allowlisted IP),
-or batch snapshot mode — where a human saves each date's page and the
-scraper merges them offline, which is what was built and verified.
+The WAF challenge is a security control that Booking.com deliberately
+deployed, so this project does not attempt to circumvent it; requests are
+limited to ordinary access of public pages. Practically, a bypass would
+not hold either: AWS WAF's challenge is server-side with rotating
+signatures, so any bypass would be brittle, need constant upkeep, and
+escalate to IP bans — the result would be stale or fabricated data, or a
+broken tool, never reliable inventory. Finally, the assignment requires
+blocks to be reported rather than evaded, and every row declares its
+provenance via `data_source`. The legitimate routes instead are
+Booking.com's official partner API, an authorized environment
+(non-headless / allowlisted IP), or batch snapshot mode — where a human
+saves each date's page and the scraper merges them offline, which is
+what was built and verified.
 
 ## 3. Deliverables and repository state
 
